@@ -19,3 +19,5 @@ MicroVMs need KVM on Linux. Inside an already-virtualized worker that means nest
 - Runner controller: actions-runner-controller scale sets vs a small just-in-time provisioner.
 - Pool sizing and the microVM image set per pool.
 - Secrets home for runner registration (short-lived JIT tokens preferred).
+
+Operating notes (updates, selective routing, lockdown, templating): runners.md.
