@@ -50,3 +50,23 @@ jobs:
 - Org-level Variables with selected-repo scoping when the plan allows; repo-level Variables otherwise (all plans, repo admin each time). Environment-level variables don't reach runner selection.
 - Shape: one reusable gated workflow plus thin callers per segment (UAT now, GPU/prod later) — new segment means new caller plus new Variable values, zero workflow surgery. A template repo holds the files plus the setup checklist (group, repo access, variables, label, branch protection, fork approval).
 - Onboarding N repos without org features: loop `gh variable set` per repo (org flag variant where available). Variables resolve in the caller repo's context, so one shared file serves every repo.
+
+## Variables: definition and setup commands
+
+Every value differing per org or repo lives in Variables — `runs-on` cannot see `env`. The parameter set:
+
+- `RUNNER_GROUP` — runner group name (`UAT`, later `GPU`, `PROD`).
+- `UAT_LABEL` — PR label opting a run in (`run-uat`).
+- `TRUSTED_ASSOCIATIONS` — JSON list of trusted PR author associations (`["OWNER"]` on personal repos, `["MEMBER", "COLLABORATOR"]` on orgs).
+- `UAT_ENVIRONMENT` — environment name if the approval gate is used (`uat`).
+
+Names take letters, digits, underscores; the `GITHUB_` prefix is reserved. Values are readable to anyone who can view runs, so tokens go in Secrets, never Variables. Repo level wins when both levels define a name — org defaults plus repo exceptions; environment level never reaches runner selection.
+
+```sh
+gh variable set RUNNER_GROUP --body "UAT" --repo myorg/myrepo
+gh variable set UAT_LABEL --body "run-uat" --repo myorg/myrepo
+gh variable set TRUSTED_ASSOCIATIONS --body '["MEMBER"]' --repo myorg/myrepo
+gh variable set UAT_ENVIRONMENT --body "uat" --repo myorg/myrepo
+```
+
+Org variant (one definition, many repos): swap `--repo myorg/myrepo` for `--org myorg --repos myrepo,otherrepo`. Verify with `gh variable list`, and a canary step echoing `${{ vars.RUNNER_GROUP }}` — safe to print. Bulk onboarding loops the repo list above; `gh variable delete NAME` retires a stale one.
