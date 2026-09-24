@@ -29,6 +29,13 @@ jobs:
 - A skipped required check counts as satisfied in branch protection, so label-less PRs merge cleanly while labeled ones run.
 - Decide Dependabot explicitly (its PRs won't match owner/member — usually what you want, but make it a decision, not an accident).
 
+## Two tiers: default cloud CI, internal on label
+
+- Default CI (`ci.yml`) runs on GitHub-hosted runners for every PR activity — fast, isolated, no trust questions. Keep `labeled` out of its trigger types so labeling doesn't wastefully re-run it.
+- Internal jobs (`ci-uat.yml`) use the gated shape above: `labeled` in types, label plus author gate, `runs-on` on the group. Secrets, heavy GPUs, Docker builds live here only.
+- Branch protection requires both. Unlabeled PRs show the internal job skipped (satisfies the requirement); labeled ones run it.
+- Cost shape: cloud minutes on every push, local iron only on demand. The label is the budget switch.
+
 ## Lockdown for trusted people
 
 - Audit triage+ now: everyone with write/triage/maintain can apply the label. Prune while small — the list only grows.
